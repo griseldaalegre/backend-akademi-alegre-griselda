@@ -1,7 +1,7 @@
 const express = require("express");
 require("./db/mongoose"); 
-const patientsRouter = require("./routes/patients");
-const userRouter = require("./routes/user");
+const patientsRouter = require("./routes/patients-routes");
+const userRouter = require("./routes/users-routes");
 
 const app = express(); 
 const port = process.env.PORT || 3000; 

@@ -1,8 +1,9 @@
 const mongoose = require("mongoose");
+require("dotenv").config({ path: "config/dev.env" }); // Carga las variables de entorno
 
 mongoose
   .connect(
-    "mongodb+srv://gri:pzX64SVX7Zcxlqkx@cluster0.r2pfe5f.mongodb.net/proyecto_backend_akademi?retryWrites=true&w=majority&appName=Cluster0"
+    process.env.MONGODB_URL
   )
   .then(() => {
     console.log("Conectado a MongoDB Atlas");

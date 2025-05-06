@@ -8,8 +8,15 @@ const patientSchema = new mongoose.Schema({
   address: String,
   birthDate: Date,
 }, {
-  timestamps: true
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
 });
 
-const Patient = mongoose.model("Patient", patientSchema);
-module.exports = Patient;
+patientSchema.virtual('appointments', {
+  ref: 'Appointment',
+  localField: '_id',
+  foreignField: 'patient'
+});
+
+module.exports = mongoose.model("Patient", patientSchema);
