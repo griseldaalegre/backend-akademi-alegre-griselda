@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
-const validator = require("validator"); //valido campos de mii modelo
+const validator = require("validator"); 
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+require("dotenv").config({ path: "config/dev.env" }); 
 
 //defino un esquema: estructura y validaciones del documento en MongoDB.
 const userSchema = new mongoose.Schema(
@@ -34,7 +35,7 @@ const userSchema = new mongoose.Schema(
         }
       },
     },
-    rol: { type: String, enum: ["admin", "recepction"], required: true },
+    rol: { type: String, enum: ["admin", "reception"], required: true },
     activo: { type: Boolean, default: true },
     tokens: [
       {
@@ -56,7 +57,7 @@ userSchema.methods.generateAuthToken = async function () {
 
   //la firma se genera header/datos/clavesecreta - se calcula un hash seguro que es la firma.
 
-  const token = jwt.sign({ _id: user._id.toString() }, "claveSecreta");
+  const token = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET);
 
   user.tokens = user.tokens.concat({ token });
   await user.save();
@@ -90,7 +91,6 @@ userSchema.pre("save", async function (next) {
 userSchema.pre("remove", async function (next) {
   const user = this;
   console.log(`Eliminando usuario con ID: ${user._id}`);
-
   next();
 });
 
