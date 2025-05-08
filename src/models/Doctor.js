@@ -13,8 +13,6 @@ const doctorSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-
-// Opcional: relación virtual con appointments
 doctorSchema.virtual('appointments', {
   ref: 'Appointment',
   localField: '_id',

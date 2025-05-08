@@ -1,6 +1,8 @@
 const { validationResult } = require("express-validator");
 const HttpError = require("../util/http-error");
 const Doctor = require("../models/Doctor");
+const Appointment = require("../models/Appointment");
+const paginate = require("../util/pagination");
 
 // creo doctor
 const createDoctor = async (req, res, next) => {
@@ -24,6 +26,12 @@ const updateDoctor = async (req, res, next) => {
     return next(new HttpError("Los datos proporcionados no son válidos.", 422));
   }
 
+  if (req.body.active === false) {
+    const appointments = await Appointment.find({ doctor: req.params.id });
+    if (appointments.length > 0) {
+      return next(new HttpError("No se puede deshabilitar un doctor con turnos asignados.", 400));
+    }
+  }
   const updates = Object.keys(req.body);
   const allowed = ["firstName", "lastName", "specialty", "email", "active","maxAppointmentsPerDay"];
   const isValid = updates.every((u) => allowed.includes(u));
@@ -48,9 +56,6 @@ const updateDoctor = async (req, res, next) => {
   }
 };
 
-
-
-
 // obtengo un doctor por id
 const getDoctor = async (req, res, next) => {
   const  {id}  = req.params;
@@ -71,35 +76,29 @@ const getDoctor = async (req, res, next) => {
   }
 };
 
-// doctores por especialidad con paginación
+// doctores activos y por especialidad con paginación
 const getDoctors = async (req, res, next) => {
-  const { specialty, page = 1, limit = 10 } = req.query;
+  const { specialty, page, limit } = req.query;
 
   if (!specialty) {
     return next(new HttpError("El filtro por especialidad es obligatorio", 400));
   }
 
-  const match = {
+  const filter = {
     active: true,
     specialty: new RegExp(specialty, "i"),
   };
 
   try {
-    const doctors = await Doctor.find(match)
-      .skip((parseInt(page) - 1) * parseInt(limit))
-      .limit(parseInt(limit));
+    const result = await paginate(Doctor, filter, page, limit);
 
-    const total = await Doctor.countDocuments(match);
-
-    if (doctors.length === 0) {
+    if (result.data.length === 0) {
       return next(new HttpError("No hay doctores con esa especialidad", 404));
     }
 
     res.send({
-      total,
-      page: parseInt(page),
-      pages: Math.ceil(total / parseInt(limit)),
-      data: doctors,
+      message: "Listado de doctores disponibles",
+      ...result
     });
   } catch (e) {
     next(new HttpError("Error al obtener doctores", 500));

@@ -1,9 +1,10 @@
 const { validationResult } = require("express-validator");
+require("dotenv").config({ path: "config/dev.env" });
+const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const HttpError = require("../util/http-error");
-const User = require("../models/User");
-require("dotenv").config({ path: "config/dev.env" });
+const paginate = require("../util/pagination");
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -16,14 +17,21 @@ const transporter = nodemailer.createTransport({
 // creo usuario
 const createUser = async (req, res, next) => {
   const errors = validationResult(req);
+
   if (!errors.isEmpty()) {
-    return next(new HttpError("Datos inválidos.", 422));
+    return next(new HttpError("Datos inválidos en el formulario.", 422));
+  }
+
+  const { email } = req.body;
+  const existingUser = await User.findOne({ email });
+
+  if (existingUser) {
+    return next(new HttpError("Ya existe un usuario con ese email.", 422));
   }
 
   try {
     const user = new User(req.body);
     await user.save();
-
     res.status(201).send({ user });
   } catch (e) {
     console.error(e);
@@ -31,10 +39,14 @@ const createUser = async (req, res, next) => {
   }
 };
 
+
 // login
 const login = async (req, res, next) => {
   try {
-    const user = await User.findByCredentials(req.body.email, req.body.password);
+    const user = await User.findByCredentials(
+      req.body.email,
+      req.body.password
+    );
     const token = jwt.sign(
       { _id: user._id, role: user.rol },
       process.env.JWT_SECRET,
@@ -96,16 +108,26 @@ const deleteUser = async (req, res, next) => {
   }
 };
 
-// obtengo usuarios
 const getUsers = async (req, res, next) => {
+  const { page, limit } = req.query;
+
   try {
-    const users = await User.find({}, "-password -tokens");
-    res.status(200).json(users);
+    const result = await paginate(User, {}, page, limit, "-password -tokens");
+
+    if (result.data.length === 0) {
+      return next(new HttpError("No hay usuarios registrados", 404));
+    }
+
+    res.status(200).json({
+      message: "Listado de usuarios",
+      ...result
+    });
   } catch (e) {
     console.error("Error al obtener usuarios:", e);
     next(new HttpError("No se pudieron obtener los usuarios", 500));
   }
 };
+
 
 // recupero contraseña
 const recoverPassword = async (req, res, next) => {
@@ -125,7 +147,7 @@ const recoverPassword = async (req, res, next) => {
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
-      to: process.env.EMAIL_USER, 
+      to: process.env.EMAIL_USER,
       subject: "Recuperación de contraseña",
       html: `<p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
              <a href="${resetLink}">${resetLink}</a>`,

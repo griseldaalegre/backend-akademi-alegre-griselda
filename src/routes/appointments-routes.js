@@ -13,5 +13,8 @@ router.get("/:id", auth, permit("admin", "reception"), appointmentController.get
 // actualizo turno
 router.patch("/:id", auth, permit("admin", "reception"), appointmentController.updateAppointmentStatus);
 
+ // listar turnos con filtros y paginación
+ router.get("/", auth, permit("admin", "reception"), appointmentController.getAppointments);
+
 module.exports = router;
 

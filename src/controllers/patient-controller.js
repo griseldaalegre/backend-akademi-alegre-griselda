@@ -1,13 +1,12 @@
 const { validationResult } = require("express-validator");
 const HttpError = require("../util/http-error");
 const Patient = require("../models/Patient");
-
-// creo paciente
+const paginate = require("../util/pagination");
 
 const createPatient = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return next(new HttpError("Datos inválidos. ", 422));
+    return next(new HttpError("Datos inválidos.", 422));
   }
 
   const patient = new Patient(req.body);
@@ -22,10 +21,11 @@ const createPatient = async (req, res, next) => {
 const updatePatient = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return next(new HttpError("Datos inválidos. ", 422));
+    return next(new HttpError("Datos inválidos.", 422));
   }
 
-  const updates = Object.keys(req.body); //revisar
+  const updates = Object.keys(req.body);
+  
   const allowed = [
     "name",
     "dni",
@@ -34,7 +34,8 @@ const updatePatient = async (req, res, next) => {
     "address",
     "birthDate",
   ];
-  const isValid = updates.every((u) => allowed.includes(u)); //revisar
+
+  const isValid = updates.every((u) => allowed.includes(u));
   if (!isValid) {
     return next(new HttpError("Actualización inválida", 400));
   }
@@ -42,6 +43,7 @@ const updatePatient = async (req, res, next) => {
   try {
     const patient = await Patient.findByIdAndUpdate(req.params.id, req.body);
     if (!patient) return next(new HttpError("Paciente no encontrado", 404));
+    
     res.send(patient);
   } catch (e) {
     next(new HttpError("Error al actualizar paciente.", 400));
@@ -49,7 +51,6 @@ const updatePatient = async (req, res, next) => {
 };
 
 
-// elimino paciente
 const deletePatient = async (req, res, next) => {
   try {
     const patient = await Patient.findByIdAndDelete(req.params.id);
@@ -62,38 +63,34 @@ const deletePatient = async (req, res, next) => {
   }
 };
 
-
-// Listar pacientes con filtros y paginación
 const getPatients = async (req, res, next) => {
-  const { name, dni, healthInsurance, page = 1, limit = 10 } = req.query;
-  const match = {};
+  const { name, dni, healthInsurance, page, limit} = req.query;
 
-  if (name) match.name = new RegExp(name, "i");
-  if (dni) match.dni = dni;
-  if (healthInsurance) match.healthInsurance = new RegExp(healthInsurance, "i");
+  const filter = {};
+
+  if (name) filter.name = new RegExp(name, "i");
+  if (dni) filter.dni = dni;
+  if (healthInsurance) filter.healthInsurance = new RegExp(healthInsurance, "i");
 
   try {
-    const patients = await Patient.find(match)
-      .skip((parseInt(page) - 1) * parseInt(limit))
-      .limit(parseInt(limit));
-
-    const total = await Patient.countDocuments(match);
+    const result = await paginate(Patient, filter, page, limit);
+    if (result.data.length === 0) {
+      return next(new HttpError("No se encontraron pacientes con esos criterios", 404));
+    }
 
     res.send({
-      total,
-      page: parseInt(page),
-      pages: Math.ceil(total / parseInt(limit)),
-      data: patients,
+      message: "Listado de pacientes",
+      ...result
     });
   } catch (e) {
     next(new HttpError("Error al obtener los pacientes", 500));
   }
 };
 
-
 const getPatient = async (req, res, next) => {
   try {
     const { id } = req.params;
+
     if (!id) {
       return next(new HttpError("ID de paciente requerido", 400));
     }
@@ -109,12 +106,10 @@ const getPatient = async (req, res, next) => {
   }
 };
 
-
 module.exports = {
-  createPatient,
-  updatePatient,
-  deletePatient,
-  getPatient,
-  getPatients,
+  createPatient,   
+  updatePatient,   
+  deletePatient,   
+  getPatient,    
+  getPatients,     
 };
-

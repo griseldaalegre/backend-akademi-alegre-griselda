@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 
 const appointmentSchema = new mongoose.Schema(
   {
-    time: { type: String, required: true }, // ej. "14:30"
+    time: { type: String, required: true }, 
     status: {
       type: String,
       enum: ["Confirmado", "Cancelado"],
