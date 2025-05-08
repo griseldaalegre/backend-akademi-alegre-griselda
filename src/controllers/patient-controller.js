@@ -6,17 +6,23 @@ const paginate = require("../util/pagination");
 const createPatient = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return next(new HttpError("Datos inválidos.", 422));
+    return next(new HttpError(errors.array()[0].msg, 422));
   }
 
-  const patient = new Patient(req.body);
   try {
+    const existingPatient = await Patient.findOne({ dni: req.body.dni });
+    if (existingPatient) {
+      return next(new HttpError("El paciente ya esta registrado.", 409));
+    }
+
+    const patient = new Patient(req.body);
     await patient.save();
     res.status(201).send(patient);
   } catch (e) {
     next(new HttpError("Error al crear el paciente.", 400));
   }
 };
+
 
 const updatePatient = async (req, res, next) => {
   const errors = validationResult(req);

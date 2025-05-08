@@ -3,7 +3,6 @@ const router = express.Router();
 const auth = require("../middleware/auth");
 const permit = require("../middleware/roles");
 const appointmentController = require("../controllers/appointment-controller");
-
 //creo nuevo turno
 router.post("/", auth, permit("admin", "reception"), appointmentController.createAppointment);
 

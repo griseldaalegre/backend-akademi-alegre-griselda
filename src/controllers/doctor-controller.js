@@ -8,7 +8,7 @@ const paginate = require("../util/pagination");
 const createDoctor = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return next(new HttpError("Datos inválidos.", 422));
+    return next(new HttpError(errors.array()[0].msg, 422));
   }
 
   const doctor = new Doctor(req.body);

@@ -17,9 +17,8 @@ const transporter = nodemailer.createTransport({
 // creo usuario
 const createUser = async (req, res, next) => {
   const errors = validationResult(req);
-
   if (!errors.isEmpty()) {
-    return next(new HttpError("Datos inválidos en el formulario.", 422));
+    return next(new HttpError(errors.array()[0].msg, 422)); // o devolver todos los errores si querés
   }
 
   const { email } = req.body;
@@ -34,14 +33,16 @@ const createUser = async (req, res, next) => {
     await user.save();
     res.status(201).send({ user });
   } catch (e) {
-    console.error(e);
     next(new HttpError("No se pudo crear el usuario", 400));
   }
 };
 
-
 // login
 const login = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return next(new HttpError(errors.array()[0].msg, 422)); // o devolver todos los errores si querés
+  }
   try {
     const user = await User.findByCredentials(
       req.body.email,
@@ -120,14 +121,13 @@ const getUsers = async (req, res, next) => {
 
     res.status(200).json({
       message: "Listado de usuarios",
-      ...result
+      ...result,
     });
   } catch (e) {
     console.error("Error al obtener usuarios:", e);
     next(new HttpError("No se pudieron obtener los usuarios", 500));
   }
 };
-
 
 // recupero contraseña
 const recoverPassword = async (req, res, next) => {
@@ -162,7 +162,12 @@ const recoverPassword = async (req, res, next) => {
 
 // reseteo contraseña
 const resetPassword = async (req, res, next) => {
+  
   const { token, password } = req.body;
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return next(new HttpError(errors.array()[0].msg, 422)); // o devolver todos los errores si querés
+  }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);

@@ -3,13 +3,14 @@ const router = express.Router();
 const auth = require("../middleware/auth");
 const permit = require("../middleware/roles");
 const usersController = require("../controllers/user-controller");
+const { userValidator, loginValidator, passwordValidator } = require("../validators/user-validator");
+
 
 // crear usuario
-router.post("/", auth, permit("admin"), usersController.createUser);
+router.post("/", auth, userValidator, permit("admin"), usersController.createUser);
 
 // login
-router.post("/login", usersController.login);
-
+router.post("/login", loginValidator, usersController.login);
 // editar usuario
 router.patch("/:id", auth, permit("admin"), usersController.updateUser);
 
@@ -23,6 +24,6 @@ router.get("/", auth, permit("admin"), usersController.getUsers);
 router.post("/:id/recover-password", auth, permit("admin"), usersController.recoverPassword);
 
 // resetear contraseña
-router.post("/reset-password", usersController.resetPassword);
+router.post("/reset-password",passwordValidator, usersController.resetPassword);
 
 module.exports = router;
