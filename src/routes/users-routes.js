@@ -3,26 +3,27 @@ const router = express.Router();
 const auth = require("../middleware/auth");
 const permit = require("../middleware/roles");
 const usersController = require("../controllers/user-controller");
+const { userValidator, loginValidator, passwordValidator } = require("../validators/user-validator");
+
 
 // crear usuario
-router.post("/users", auth, permit("admin"), usersController.createUser);
+router.post("/", auth, userValidator, permit("admin"), usersController.createUser);
 
 // login
-router.post("/users/login", usersController.login);
-
+router.post("/login", loginValidator, usersController.login);
 // editar usuario
-router.patch("/users/:id", auth, permit("admin"), usersController.updateUser);
+router.patch("/:id", auth, permit("admin"), usersController.updateUser);
 
 // eliminar usuario
-router.delete("/users/:id", auth, permit("admin"), usersController.deleteUser);
+router.delete("/:id", auth, permit("admin"), usersController.deleteUser);
 
 // listar usuarios
-router.get("/users", auth, permit("admin"), usersController.getUsers);
+router.get("/", auth, permit("admin"), usersController.getUsers);
 
 // recuperar contraseña
-router.post("/users/:id/recover-password", auth, permit("admin"), usersController.recoverPassword);
+router.post("/:id/recover-password", auth, permit("admin"), usersController.recoverPassword);
 
 // resetear contraseña
-router.post("/users/reset-password", usersController.resetPassword);
+router.post("/reset-password",passwordValidator, usersController.resetPassword);
 
 module.exports = router;

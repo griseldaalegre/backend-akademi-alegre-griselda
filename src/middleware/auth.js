@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User.js");
+const HttpError = require("../util/http-error.js");
 require("dotenv").config({ path: "config/dev.env" }); // Carga las variables de entorno
 
 const auth = async (req, res, next) => {
@@ -12,8 +13,7 @@ const auth = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    console.log(error);
-    res.status(401).send({ error: "Por favor autenticar" });
+    return next(new HttpError("No autorizado", 401));
   }
 };
 

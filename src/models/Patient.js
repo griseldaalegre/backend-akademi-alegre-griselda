@@ -4,9 +4,7 @@ const patientSchema = new mongoose.Schema({
   name: { type: String, required: true },
   dni: { type: String, required: true, unique: true },
   healthInsurance: { type: String, required: true },
-  phone: String,
   address: String,
-  birthDate: Date,
 }, {
   timestamps: true,
   toJSON: { virtuals: true },
