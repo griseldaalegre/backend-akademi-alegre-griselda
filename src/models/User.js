@@ -1,11 +1,10 @@
 const mongoose = require("mongoose");
-const validator = require("validator"); 
-const jwt = require("jsonwebtoken");
-const HttpError = require("../util/http-error");
-const bcrypt = require("bcryptjs");
-require("dotenv").config({ path: "config/dev.env" }); 
+const validator = require("validator");
+const HttpError = require("../../src/util/http-error"); 
 
-//defino un esquema: estructura y validaciones del documento en MongoDB.
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
+
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -52,51 +51,29 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-//genero token
-userSchema.methods.generateAuthToken = async function () {
-  const user = this;
-
-  //la firma se genera header/datos/clavesecreta - se calcula un hash seguro que es la firma.
-
-  const token = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET);
-
-  user.tokens = user.tokens.concat({ token });
-  await user.save();
-  return token;
-};
-
 userSchema.statics.findByCredentials = async (email, password) => {
   const user = await User.findOne({ email });
   if (!user) {
-    throw new Error("No se pudo locguear, no encontro usuario");
+    throw new HttpError("No se encontró un usuario con ese correo", 404);
   }
 
-  // comparo la contraseña con la hasheada
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
-    throw new Error("Las contraseñas no coinciden");
+    throw new HttpError("La contraseña ingresada es incorrecta", 401);
   }
+
   return user;
 };
 
 userSchema.pre("save", async function (next) {
   const user = this;
-
   if (user.isModified("password")) {
     user.password = await bcrypt.hash(user.password, 8);
   }
-
   next();
 });
 
-userSchema.pre("remove", async function (next) {
-  const user = this;
-  console.log(`Eliminando usuario con ID: ${user._id}`);
-  next();
-});
 
 const User = mongoose.model("User", userSchema);
 
 module.exports = User;
-
-

@@ -3,23 +3,22 @@ const HttpError = require("../util/http-error");
 const Appointment = require("../models/Appointment");
 const Doctor = require("../models/Doctor");
 const Patient = require("../models/Patient");
+const paginate = require("../util/pagination");
+
 
 const createAppointment = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return next(new HttpError("Datos inválidos.", 422));
+    return next(new HttpError(errors.array()[0].msg, 422));
   }
 
   const { time, date, status, patient, doctor } = req.body;
 
   try {
     const existingDoctor = await Doctor.findById(doctor);
-    // verifico que el doctor exista y este activo
     if (!existingDoctor || !existingDoctor.active) {
       return next(new HttpError("Doctor no válido o inactivo.", 404));
     }
-
-    // verifico que el paciente exista
     const existingPatient = await Patient.findById(patient);
     if (!existingPatient) {
       return next(new HttpError("Paciente no encontrado.", 404));
@@ -39,23 +38,17 @@ const createAppointment = async (req, res, next) => {
       );
     }
 
-    // creo el turno
-    const newAppointment = new Appointment({
-      time,
-      date,
-      status: status || "Confirmado",
-      patient,
-      doctor,
-    });
-
+    const newAppointment = new Appointment(req.body);
     await newAppointment.save();
-    res.status(201).json(newAppointment);
+    res
+      .status(201)
+      .json({ message: "Turno creado correctamente", newAppointment });
   } catch (err) {
+    console.log(err);
     next(new HttpError("Error al crear el turno.", 500));
   }
 };
 
-// obtengo un turno por id
 const getAppointment = async (req, res, next) => {
   const { id } = req.params;
   if (!id) {
@@ -67,20 +60,20 @@ const getAppointment = async (req, res, next) => {
     if (!appointment) {
       return next(new HttpError("Turno no encontrado", 404));
     }
-    res.send(appointment);
+    res.send({message: "Detalles del turno", appointment});
   } catch (e) {
     return next(new HttpError("Turno no encontrado", 500));
   }
 };
 
-const updateAppointmentStatus = async (req, res, next) => {
+const updateAppointment = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return next(new HttpError("Estado inválido.", 422));
+    return next(new HttpError(errors.array()[0].msg, 422));
   }
 
   const updates = Object.keys(req.body);
-  const allowed = ["status"];
+  const allowed = ["time", "status", "date", "patient", "doctor"];
   const isValid = updates.every((u) => allowed.includes(u));
 
   if (!isValid) {
@@ -99,7 +92,7 @@ const updateAppointmentStatus = async (req, res, next) => {
     }
 
     res.status(200).json({
-      message: "Estado actualizado correctamente",
+      message: "Turno actualizado correctamente",
       appointment,
     });
   } catch (e) {
@@ -111,31 +104,30 @@ const updateAppointmentStatus = async (req, res, next) => {
 const getAppointments = async (req, res, next) => {
   const { patient, doctor, page, limit } = req.query;
 
-
   const filter = {};
   if (patient) filter.patient = patient;
   if (doctor) filter.doctor = doctor;
 
   try {
     const result = await paginate(Appointment, filter, page, limit);
-    
+
     if (result.data.length === 0) {
       return next(new HttpError("No se encontraron turnos", 404));
     }
 
     res.send({
       message: "Listado de turnos",
-      ...result
+      ...result,
     });
   } catch (error) {
+    console.log(error)
     next(new HttpError("Error al listar los turnos.", 500));
   }
 };
 
-
 module.exports = {
   createAppointment,
   getAppointment,
-  updateAppointmentStatus,
+  updateAppointment,
   getAppointments,
 };

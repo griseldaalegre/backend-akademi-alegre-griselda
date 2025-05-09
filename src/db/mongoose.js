@@ -1,5 +1,4 @@
-const mongoose = require("mongoose");
-require("dotenv").config({ path: "config/dev.env" }); // Carga las variables de entorno
+const mongoose = require("mongoose"); 
 
 mongoose
   .connect(

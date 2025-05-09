@@ -4,7 +4,6 @@ const Doctor = require("../models/Doctor");
 const Appointment = require("../models/Appointment");
 const paginate = require("../util/pagination");
 
-// creo doctor
 const createDoctor = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -14,7 +13,7 @@ const createDoctor = async (req, res, next) => {
   const doctor = new Doctor(req.body);
   try {
     await doctor.save();
-    res.status(201).send(doctor);
+    res.status(201).send({  message: "Doctor creado correctamente", doctor});
   } catch (e) {
     next(new HttpError("Error al crear el doctor.", 400));
   }
@@ -56,7 +55,6 @@ const updateDoctor = async (req, res, next) => {
   }
 };
 
-// obtengo un doctor por id
 const getDoctor = async (req, res, next) => {
   const  {id}  = req.params;
 
@@ -70,13 +68,12 @@ const getDoctor = async (req, res, next) => {
       return next(new HttpError("Doctor no encontrado", 404));
     }
 
-    res.send(doctor);
+    res.send({message:"Detalles del doctor", doctor});
   } catch (e) {
     next(new HttpError("Error al obtener doctor.", 500));
   }
 };
 
-// doctores activos y por especialidad con paginación
 const getDoctors = async (req, res, next) => {
   const { specialty, page, limit } = req.query;
 

@@ -1,7 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User.js");
 const HttpError = require("../util/http-error.js");
-require("dotenv").config({ path: "config/dev.env" }); // Carga las variables de entorno
 
 const auth = async (req, res, next) => {
   try {

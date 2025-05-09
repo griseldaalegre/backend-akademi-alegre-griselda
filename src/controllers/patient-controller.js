@@ -17,7 +17,7 @@ const createPatient = async (req, res, next) => {
 
     const patient = new Patient(req.body);
     await patient.save();
-    res.status(201).send(patient);
+    res.status(201).send({message:"Paciente creado correctamente", patient});
   } catch (e) {
     next(new HttpError("Error al crear el paciente.", 400));
   }
@@ -27,7 +27,7 @@ const createPatient = async (req, res, next) => {
 const updatePatient = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return next(new HttpError("Datos inválidos.", 422));
+    return next(new HttpError(errors.array()[0].msg, 422));
   }
 
   const updates = Object.keys(req.body);
@@ -36,9 +36,6 @@ const updatePatient = async (req, res, next) => {
     "name",
     "dni",
     "healthInsurance",
-    "phone",
-    "address",
-    "birthDate",
   ];
 
   const isValid = updates.every((u) => allowed.includes(u));
@@ -47,10 +44,15 @@ const updatePatient = async (req, res, next) => {
   }
 
   try {
-    const patient = await Patient.findByIdAndUpdate(req.params.id, req.body);
+    const patient = await Patient.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true } 
+    );
+
     if (!patient) return next(new HttpError("Paciente no encontrado", 404));
     
-    res.send(patient);
+    res.send({ message: "Paciente editado correctamente", patient });
   } catch (e) {
     next(new HttpError("Error al actualizar paciente.", 400));
   }
@@ -63,7 +65,10 @@ const deletePatient = async (req, res, next) => {
     if (!patient) {
       return next(new HttpError("Paciente no encontrado", 404));
     }
-    res.send(patient);
+    res.status(200).json({
+      message: "Usuario eliminado correctamente",
+      patient
+    });
   } catch (e) {
     next(new HttpError("Error al eliminar el paciente", 500));
   }
@@ -106,7 +111,7 @@ const getPatient = async (req, res, next) => {
       return next(new HttpError("Paciente no encontrado", 404));
     }
 
-    res.send(patient);
+    res.send({message:"Detalles de paciente",patient});
   } catch (e) {
     next(new HttpError("Error al obtener paciente", 500));
   }
