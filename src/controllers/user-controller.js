@@ -14,11 +14,10 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// creo usuario
 const createUser = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return next(new HttpError(errors.array()[0].msg, 422)); // o devolver todos los errores si querés
+    return next(new HttpError(errors.array()[0].msg, 422)); 
   }
 
   const { email } = req.body;
@@ -31,17 +30,23 @@ const createUser = async (req, res, next) => {
   try {
     const user = new User(req.body);
     await user.save();
-    res.status(201).send({ user });
+
+    const userObj = user.toObject();
+    delete userObj.password;
+
+    res.status(201).json({
+      message: "Usuario creado correctamente",
+      user: userObj,
+    });
   } catch (e) {
     next(new HttpError("No se pudo crear el usuario", 400));
   }
 };
 
-// login
 const login = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return next(new HttpError(errors.array()[0].msg, 422)); // o devolver todos los errores si querés
+    return next(new HttpError(errors.array()[0].msg, 422)); 
   }
   try {
     const user = await User.findByCredentials(
@@ -54,7 +59,6 @@ const login = async (req, res, next) => {
       { expiresIn: "30d" }
     );
 
-    // guardo el token en el usuario
     user.tokens = user.tokens.concat({ token });
     await user.save();
 
@@ -65,14 +69,20 @@ const login = async (req, res, next) => {
   }
 };
 
-// edito usuario
 const updateUser = async (req, res, next) => {
   const updates = Object.keys(req.body);
   const allowed = ["name", "email", "password", "rol", "activo"];
-  const isValid = updates.every((u) => allowed.includes(u));
+  const isValidUpdate = updates.every((key) => allowed.includes(key));
 
-  if (!isValid) {
-    return next(new HttpError("Actualización inválida", 400));
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return next(new HttpError(errors.array()[0].msg, 422));
+  }
+
+  if (!isValidUpdate) {
+    return next(
+      new HttpError("Actualización inválida: campos no permitidos", 400)
+    );
   }
 
   try {
@@ -81,17 +91,28 @@ const updateUser = async (req, res, next) => {
       return next(new HttpError("Usuario no encontrado", 404));
     }
 
-    updates.forEach((u) => (user[u] = req.body[u]));
+    updates.forEach((key) => {
+      user[key] = req.body[key];
+    });
+
     await user.save();
 
-    res.send(user);
+    const userObj = user.toObject();
+    delete userObj.password;
+    delete userObj.tokens;
+
+    res.status(200).json({
+      message: "Usuario editado correctamente",
+      user: userObj,
+    });
   } catch (e) {
-    console.error(e);
+    if (e.code === 11000 && e.keyPattern?.email) {
+      return next(new HttpError("Ya existe un usuario con ese email.", 400));
+    }
     next(new HttpError("No se pudo actualizar el usuario", 400));
   }
 };
 
-// elimino usuario
 const deleteUser = async (req, res, next) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
@@ -99,12 +120,15 @@ const deleteUser = async (req, res, next) => {
       return next(new HttpError("Usuario no encontrado", 404));
     }
 
-    res.send({
-      message: "Usuario eliminado exitosamente",
-      userEliminado: user,
+    const userObj = user.toObject();
+    delete userObj.password;
+    delete userObj.tokens;
+
+    res.status(200).json({
+      message: "Usuario eliminado correctamente",
+      user: userObj,
     });
   } catch (e) {
-    console.error(e);
     next(new HttpError("Error al eliminar el usuario", 500));
   }
 };
@@ -129,49 +153,42 @@ const getUsers = async (req, res, next) => {
   }
 };
 
-// recupero contraseña
 const recoverPassword = async (req, res, next) => {
-  try {
-    const user = await User.findById(req.params.id);
-    if (!user || !user.email) {
-      return next(new HttpError("Usuario no encontrado o sin email", 404));
-    }
+  const { email } = req.body;
 
-    const token = jwt.sign(
-      { _id: user._id.toString() },
-      process.env.JWT_SECRET,
-      { expiresIn: "15m" }
-    );
+  const user = await User.findOne({ email });
+  if (!user)
+    return next(new HttpError("No se encontró un usuario con ese email", 404));
 
-    const resetLink = `http://localhost:3000/reset-password?token=${token}`;
+  const recoveryToken = jwt.sign(
+    { userId: user._id, email: user.email },
+    process.env.JWT_SECRET,
+    { expiresIn: "1h" }
+  );
 
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: process.env.EMAIL_USER,
-      subject: "Recuperación de contraseña",
-      html: `<p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
-             <a href="${resetLink}">${resetLink}</a>`,
-    });
+  const recoveryLink = `http://localhost:3000/password-recovery/${recoveryToken}`;
 
-    res.send({ message: "Correo de recuperación enviado" });
-  } catch (err) {
-    console.error(err);
-    next(new HttpError("Error al enviar email", 500));
-  }
+  await transporter.sendMail({
+    from: process.env.EMAIL_USER,
+    to: user.email,
+    subject: "Recuperación de contraseña",
+    html: `<p>Haz clic en el siguiente enlace para recuperar tu contraseña:</p><a href="${recoveryLink}">${recoveryLink}</a>`,
+  });
+
+  res.status(200).json({ message: "Correo de recuperación enviado." });
 };
 
-// reseteo contraseña
 const resetPassword = async (req, res, next) => {
-  
   const { token, password } = req.body;
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return next(new HttpError(errors.array()[0].msg, 422)); // o devolver todos los errores si querés
+    return next(new HttpError(errors.array()[0].msg, 422));
   }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded._id);
+    const user = await User.findById(decoded.userId); 
+
     if (!user) {
       return next(new HttpError("Usuario no encontrado", 404));
     }

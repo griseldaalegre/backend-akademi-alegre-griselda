@@ -3,16 +3,14 @@ const router = express.Router();
 const auth = require("../middleware/auth");
 const permit = require("../middleware/roles");
 const appointmentController = require("../controllers/appointment-controller");
-//creo nuevo turno
-router.post("/", auth, permit("admin", "reception"), appointmentController.createAppointment);
+const { createAppointmentValidator, updateAppointmentValidator } = require("../validators/appointment-validator");
 
-// ver detalles de un turno
+router.post("/", auth, permit("admin", "reception"),createAppointmentValidator, appointmentController.createAppointment);
+
 router.get("/:id", auth, permit("admin", "reception"), appointmentController.getAppointment);
 
-// actualizo turno
-router.patch("/:id", auth, permit("admin", "reception"), appointmentController.updateAppointmentStatus);
+router.patch("/:id", auth, permit("admin", "reception"), updateAppointmentValidator, appointmentController.updateAppointment);
 
- // listar turnos con filtros y paginación
  router.get("/", auth, permit("admin", "reception"), appointmentController.getAppointments);
 
 module.exports = router;
