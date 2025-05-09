@@ -48,7 +48,6 @@ const updatePatient = async (req, res, next) => {
       req.params.id,
       req.body,
       { new: true } 
-      
     );
 
     if (!patient) return next(new HttpError("Paciente no encontrado", 404));
@@ -92,7 +91,7 @@ const getPatients = async (req, res, next) => {
 
     res.send({
       message: "Listado de pacientes",
-      ...result 
+      ...result
     });
   } catch (e) {
     next(new HttpError("Error al obtener los pacientes", 500));

@@ -4,7 +4,6 @@ const HttpError = require("../../src/util/http-error");
 
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-require("dotenv").config({ path: "config/dev.env" });
 
 const userSchema = new mongoose.Schema(
   {

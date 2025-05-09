@@ -12,14 +12,13 @@ const createAppointment = async (req, res, next) => {
     return next(new HttpError(errors.array()[0].msg, 422));
   }
 
-  const { time, date, patient, doctor } = req.body;
+  const { time, date, status, patient, doctor } = req.body;
 
   try {
     const existingDoctor = await Doctor.findById(doctor);
     if (!existingDoctor || !existingDoctor.active) {
       return next(new HttpError("Doctor no válido o inactivo.", 404));
     }
-
     const existingPatient = await Patient.findById(patient);
     if (!existingPatient) {
       return next(new HttpError("Paciente no encontrado.", 404));
@@ -45,6 +44,7 @@ const createAppointment = async (req, res, next) => {
       .status(201)
       .json({ message: "Turno creado correctamente", newAppointment });
   } catch (err) {
+    console.log(err);
     next(new HttpError("Error al crear el turno.", 500));
   }
 };

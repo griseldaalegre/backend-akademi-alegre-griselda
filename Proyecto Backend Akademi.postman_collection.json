@@ -1,0 +1,497 @@
+{
+	"info": {
+		"_postman_id": "cdf81527-baf6-4718-a711-979c110fce6c",
+		"name": "Proyecto Backend Akademi",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "30781985"
+	},
+	"item": [
+		{
+			"name": "Signup",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"prueba\",\r\n  \"email\": \"admin@gmail.com\",\r\n  \"password\": \"admin1234\",\r\n  \"rol\": \"reception\"\r\n}\r\n\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "{{url}}/users"
+			},
+			"response": []
+		},
+		{
+			"name": "Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if(pm.response.code === 200){\r",
+							"    pm.environment.set('authToken', pm.response.json().token);\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"admin@gmail.com\",\r\n  \"password\": \"admin1234\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "{{url}}/users/login"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Users",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/users?page=3&limit=5",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"users"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "3"
+						},
+						{
+							"key": "limit",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete user",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/users/idUsuario",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"users",
+						"idUsuario"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": null,
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update User",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n \"name\":\"nombre\",\r\n  \"email\": \"example@gmail.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/users/idUsuario",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"users",
+						"idUsuario"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Recover Password",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"example@gmail.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "{{url}}/users/recover-password"
+			},
+			"response": []
+		},
+		{
+			"name": "Reset Password",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"token\": \"TOKEN\",\r\n  \"password\": \"NUEVA PASSWORD\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "{{url}}/users/reset-password"
+			},
+			"response": []
+		},
+		{
+			"name": "Create Patient",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Cartlos \",\r\n  \"dni\": \"12345678\",\r\n  \"healthInsurance\": \"Sancor\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "{{url}}/patients"
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Patient",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": "{{url}}/patients/idPaciente"
+			},
+			"response": []
+		},
+		{
+			"name": "Update Patient",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Ana\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "{{url}}/patients/idPaciente"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Patients by filters",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/patients/?healthInsurance=seguro",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"patients",
+						""
+					],
+					"query": [
+						{
+							"key": "healthInsurance",
+							"value": "seguro"
+						},
+						{
+							"key": "name",
+							"value": "Carlos",
+							"disabled": true
+						},
+						{
+							"key": "dni",
+							"value": "12345678",
+							"disabled": true
+						},
+						{
+							"key": "page",
+							"value": "1",
+							"disabled": true
+						},
+						{
+							"key": "limit",
+							"value": "2",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get patient by id",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Mario Péreez\",\r\n  \"dni\": \"2421547798\",\r\n  \"healthInsurance\": \"Sancor\",\r\n  \"phone\": \"123-456-7890\",\r\n  \"address\": \"Av. Libertador 12, Buenos Aires, Argentina\",\r\n  \"birthDate\": \"1985-07-15T00:00:00.000Z\"\r\n}\r\n"
+				},
+				"url": "{{url}}/patients/idPaciente"
+			},
+			"response": []
+		},
+		{
+			"name": "Create doctor",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"firstName\": \"Crlitos\",\r\n  \"lastName\": \"carlos\",\r\n  \"specialty\": \"otro\",\r\n  \"email\": \"elena.gomdez@example.com\",\r\n  \"phone\": \"3511234567\",\r\n  \"active\": true\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "{{url}}/doctors"
+			},
+			"response": []
+		},
+		{
+			"name": "Get doctors by specialty",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/doctors/?page=1&limit=2&specialty=pediatría",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"doctors",
+						""
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "limit",
+							"value": "2"
+						},
+						{
+							"key": "specialty",
+							"value": "pediatría"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get doctor by id",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/doctors/idDoctor",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"doctors",
+						"idDoctor"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update doctor",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"firstName\": \"ariel\",\r\n    \"lastName\": \"lopez\",\r\n    \"specialty\": \"otro\",\r\n    \"email\": \"ariellopez.gomdez@example.com\",\r\n    \"active\": true\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "{{url}}/doctors/idDoctor"
+			},
+			"response": []
+		},
+		{
+			"name": "Create appointment",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"time\": \"20:30\",\r\n  \"date\": \"2025-05-08\",     \r\n  \"patient\": \"idpaciente\",\r\n  \"doctor\": \"iddoctor\",\r\n  \"status\": \"Confirmado\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "{{url}}/appointments"
+			},
+			"response": []
+		},
+		{
+			"name": "Get appointment",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "{{url}}/appointments/idTurno"
+			},
+			"response": []
+		},
+		{
+			"name": "Update appointment",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"time\": \"09:30\",\r\n  \"status\": \"Confirmado\",\r\n  \"date\": \"2025-05-15\",\r\n  \"patient\": \"idPaciente\",\r\n  \"doctor\": \"idDoctor\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "{{url}}/appointments/681d73c0b0779e20d02ac20a"
+			},
+			"response": []
+		},
+		{
+			"name": "Get appointments by filters",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/appointments",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"appointments"
+					],
+					"query": [
+						{
+							"key": "patient",
+							"value": "681d69104acf4b6bffb2a6ac",
+							"disabled": true
+						},
+						{
+							"key": "doctor",
+							"value": "681d6d3e862c8254b9252f22",
+							"disabled": true
+						},
+						{
+							"key": "page",
+							"value": "2",
+							"disabled": true
+						},
+						{
+							"key": "limit",
+							"value": "2",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": {
+			"token": "{{authToken}}"
+		}
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

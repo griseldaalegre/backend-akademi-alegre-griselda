@@ -7,7 +7,7 @@ const {  createPatientValidator, updatePatientValidator} = require("../validator
 
 router.post("/", auth, permit("admin", "reception"), createPatientValidator, patientController.createPatient);
 
-router.patch("/:id", auth, permit("admin", "reception"),updatePatientValidator, patientController.updatePatient);
+router.patch("/:id", auth, permit("admin", "reception"), updatePatientValidator, patientController.updatePatient);
 
 router.delete("/:id", auth, permit("admin", "reception"), patientController.deletePatient);
 

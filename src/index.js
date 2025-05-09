@@ -1,3 +1,4 @@
+require("dotenv").config({ path: "config/dev.env" });
 const express = require("express");
 require("./db/mongoose");
 const patientsRouter = require("./routes/patients-routes");

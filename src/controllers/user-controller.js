@@ -1,18 +1,11 @@
 const { validationResult } = require("express-validator");
-require("dotenv").config({ path: "config/dev.env" });
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
-const nodemailer = require("nodemailer");
+const { sendRecoverEmail } = require("../email/recovery-email");
 const HttpError = require("../util/http-error");
 const paginate = require("../util/pagination");
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+
 
 const createUser = async (req, res, next) => {
   const errors = validationResult(req);
@@ -168,12 +161,7 @@ const recoverPassword = async (req, res, next) => {
 
   const recoveryLink = `http://localhost:3000/password-recovery/${recoveryToken}`;
 
-  await transporter.sendMail({
-    from: process.env.EMAIL_USER,
-    to: user.email,
-    subject: "Recuperación de contraseña",
-    html: `<p>Haz clic en el siguiente enlace para recuperar tu contraseña:</p><a href="${recoveryLink}">${recoveryLink}</a>`,
-  });
+  await sendRecoverEmail(user.email, recoveryLink);
 
   res.status(200).json({ message: "Correo de recuperación enviado." });
 };
